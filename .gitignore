@@ -1,0 +1,28 @@
+# Unreal generated folders
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Visual Studio
+.vs/
+*.sln
+*.suo
+*.user
+*.VC.db
+*.VC.opendb
+
+# Build output
+Build/
+StagedBuilds/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Third Party Assets
+Content/KaijuPrototype/Kaiju
+Content/LPGenericPropsSet06
+Content/LPGenericPropsSet14
+Content/LevelPrototyping
+Content/Characters
