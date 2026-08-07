@@ -373,8 +373,8 @@ AActor* UBrawlerGrabComponent::FindThrowableTarget() const
 		Params
 	);
 
-	DrawDebugSphere(GetWorld(), End, GrabRadius, 16, FColor::Orange, false, 0.02f);
-	DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.02f, 0, 3.f);
+	//DrawDebugSphere(GetWorld(), End, GrabRadius, 16, FColor::Orange, false, 0.02f);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.02f, 0, 3.f);
 
 	if (!bHit)
 	{
