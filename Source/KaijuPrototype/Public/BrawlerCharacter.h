@@ -10,6 +10,7 @@ class UBrawlerHealthComponent;
 class UBrawlerGrabComponent;
 class UBrawlerClimbComponent;
 class UBrawlerTargetingComponent;
+class UBrawlerThrowableComponent;
 
 UENUM(BlueprintType)
 enum class EBrawlerState : uint8
@@ -52,6 +53,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Brawler|Components")
 	UBrawlerTargetingComponent* TargetingComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Brawler|Components")
+	UBrawlerThrowableComponent* ThrowableComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Brawler|State")
 	EBrawlerState CurrentState = EBrawlerState::Idle;
 
@@ -60,6 +64,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Brawler|Movement")
 	float SprintSpeed = 500.f;
+
+	virtual void Landed(const FHitResult& Hit) override;
+
+	bool bRecoverFromThrowOnLanding = false;
 
 public:
 
@@ -121,6 +129,7 @@ public:
 
 	UBrawlerGrabComponent* GetGrabComponent() const { return GrabComponent; }
 	
+	void BeginThrownState();
 	
 	/*=======================================
 			Climb Component Accessors

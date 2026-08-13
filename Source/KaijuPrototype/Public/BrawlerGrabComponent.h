@@ -50,6 +50,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grab")
 	float ThrowForce = 1800.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Throw")
+	float ThrowArcBias = 0.45f;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Grab")
 	FName GrabSocketName = "RightHand_GrabSocket";
 

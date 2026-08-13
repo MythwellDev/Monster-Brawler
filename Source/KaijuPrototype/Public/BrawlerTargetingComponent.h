@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Targeting")
 	bool IsTargeting() const { return CurrentTarget != nullptr; }
 
+	UFUNCTION(BlueprintPure, Category = "Targeting")
+	AActor* GetCurrentTarget() const { return CurrentTarget; }
+
 protected:
 	UPROPERTY()
 	ABrawlerCharacter* OwnerBrawler = nullptr;

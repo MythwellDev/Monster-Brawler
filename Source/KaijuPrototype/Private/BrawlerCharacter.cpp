@@ -16,6 +16,7 @@ ABrawlerCharacter::ABrawlerCharacter()
 	GrabComponent = CreateDefaultSubobject<UBrawlerGrabComponent>(TEXT("GrabComponent"));
 	ClimbComponent = CreateDefaultSubobject<UBrawlerClimbComponent>(TEXT("ClimbComponent"));
 	TargetingComponent = CreateDefaultSubobject<UBrawlerTargetingComponent>(TEXT("TargetingComponent"));
+	ThrowableComponent = CreateDefaultSubobject<UBrawlerThrowableComponent>(TEXT("ThrowableComponent"));
 
 	bUseControllerRotationYaw = false;
 
@@ -112,4 +113,36 @@ void ABrawlerCharacter::ThrowGrabbedTarget()
 bool ABrawlerCharacter::IsGrabbing() const
 {
 	return GrabComponent && GrabComponent->IsGrabbing();
+}
+
+void ABrawlerCharacter::BeginThrownState()
+{
+	bRecoverFromThrowOnLanding = IsAlive();
+
+	SetBrawlerState(
+		bRecoverFromThrowOnLanding
+		? EBrawlerState::Stunned
+		: EBrawlerState::Dead
+	);
+}
+
+void ABrawlerCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	if (!bRecoverFromThrowOnLanding)
+	{
+		return;
+	}
+
+	bRecoverFromThrowOnLanding = false;
+
+	if (IsAlive())
+	{
+		SetBrawlerState(EBrawlerState::Idle);
+	}
+	else
+	{
+		SetBrawlerState(EBrawlerState::Dead);
+	}
 }
