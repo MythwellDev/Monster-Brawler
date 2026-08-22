@@ -6,6 +6,8 @@
 #include "BrawlerTargetingComponent.h"
 #include "BrawlerThrowableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 
 ABrawlerCharacter::ABrawlerCharacter()
 {
@@ -36,7 +38,9 @@ void ABrawlerCharacter::BeginPlay()
 	SetBrawlerState(EBrawlerState::Idle);
 }
 
-//State Accessors
+/*=====================================
+			State Accessors
+=====================================*/
 void ABrawlerCharacter::SetBrawlerState(EBrawlerState NewState)
 {
 	CurrentState = NewState;
@@ -58,7 +62,9 @@ bool ABrawlerCharacter::IsAlive() const
 }
 
 
-//Combat Component Accessors
+/*=====================================
+			Combat Accessors		
+=====================================*/
 void ABrawlerCharacter::LightAttack()
 {
 	if (CombatComponent)
@@ -83,7 +89,9 @@ void ABrawlerCharacter::PerformHitTrace()
 	}
 }
 
-//Health Component Accessors
+/*=====================================
+			Health Accessors
+=====================================*/
 void ABrawlerCharacter::ReceiveDamage(float DamageAmount, ABrawlerCharacter* Attacker, float KnockbackAmount, EHitReactionType HitReactionType)
 {
 	if (HealthComponent)
@@ -93,7 +101,9 @@ void ABrawlerCharacter::ReceiveDamage(float DamageAmount, ABrawlerCharacter* Att
 }
 
 
-//Grab Component Accessors
+/*=====================================
+				Grab
+=====================================*/
 void ABrawlerCharacter::TryGrab()
 {
 	if (GrabComponent)
@@ -126,6 +136,9 @@ void ABrawlerCharacter::BeginThrownState()
 	);
 }
 
+/*=====================================
+				Landed
+=====================================*/
 void ABrawlerCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
@@ -139,7 +152,7 @@ void ABrawlerCharacter::Landed(const FHitResult& Hit)
 
 	if (IsAlive())
 	{
-		SetBrawlerState(EBrawlerState::Idle);
+		SetBrawlerState(EBrawlerState::Stunned);
 	}
 	else
 	{

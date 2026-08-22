@@ -239,7 +239,9 @@ void UBrawlerCombatComponent::PerformHitTrace()
 	}
 }
 
-void UBrawlerCombatComponent::PlayHitReaction(EHitReactionType ReactionType)
+void UBrawlerCombatComponent::PlayHitReaction(
+	EHitReactionType ReactionType
+)
 {
 	if (!OwnerBrawler)
 	{
@@ -252,25 +254,43 @@ void UBrawlerCombatComponent::PlayHitReaction(EHitReactionType ReactionType)
 
 	if (!AnimInstance)
 	{
+		OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
 		return;
 	}
 
 	for (const FBrawlerHitReactData& HitReact : HitReactions)
 	{
-		if (HitReact.HitReactionType == ReactionType && HitReact.Montage)
+		if (HitReact.HitReactionType != ReactionType ||
+			!HitReact.Montage)
 		{
-			const float Duration = AnimInstance->Montage_Play(HitReact.Montage);
+			continue;
+		}
 
-			if (Duration > 0.f)
-			{
-				FOnMontageEnded EndDelegate;
-				EndDelegate.BindUObject(this, &UBrawlerCombatComponent::OnHitReactionMontageEnded);
-				AnimInstance->Montage_SetEndDelegate(EndDelegate, HitReact.Montage);
-			}
+		const float Duration =
+			AnimInstance->Montage_Play(HitReact.Montage);
 
+		if (Duration <= 0.f)
+		{
+			OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
 			return;
 		}
+
+		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(
+			this,
+			&UBrawlerCombatComponent::OnHitReactionMontageEnded
+		);
+
+		AnimInstance->Montage_SetEndDelegate(
+			EndDelegate,
+			HitReact.Montage
+		);
+
+		return;
 	}
+
+	// No configured reaction matched ReactionType.
+	OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
 }
 
 void UBrawlerCombatComponent::OnHitReactionMontageEnded(UAnimMontage* Montage, bool bInterrupted)

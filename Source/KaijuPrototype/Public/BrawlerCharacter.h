@@ -11,6 +11,7 @@ class UBrawlerGrabComponent;
 class UBrawlerClimbComponent;
 class UBrawlerTargetingComponent;
 class UBrawlerThrowableComponent;
+class UAnimMontage;
 
 UENUM(BlueprintType)
 enum class EBrawlerState : uint8

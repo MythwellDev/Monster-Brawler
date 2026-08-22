@@ -26,9 +26,7 @@ void UBrawlerThrowableComponent::BeginPlay()
 	}
 }
 
-void UBrawlerThrowableComponent::BeginThrow(
-	ABrawlerCharacter* InThrower
-)
+void UBrawlerThrowableComponent::BeginThrow(ABrawlerCharacter* InThrower)
 {
 	Thrower = InThrower;
 	bIsInFlight = true;
@@ -36,13 +34,7 @@ void UBrawlerThrowableComponent::BeginThrow(
 	bCanBePickedUp = false;
 }
 
-void UBrawlerThrowableComponent::HandleThrowableHit(
-	UPrimitiveComponent* HitComponent,
-	AActor* OtherActor,
-	UPrimitiveComponent* OtherComponent,
-	FVector NormalImpulse,
-	const FHitResult& Hit
-)
+void UBrawlerThrowableComponent::HandleThrowableHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,	FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (!bIsInFlight ||
 		bHasDealtImpactDamage ||

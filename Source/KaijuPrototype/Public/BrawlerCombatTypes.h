@@ -15,7 +15,8 @@ enum class EHitReactionType : uint8
 	Heavy UMETA(DisplayName = "Heavy"),
 	Knockdown UMETA(DisplayName = "Knockdown"),
 	Launch UMETA(DisplayName = "Launch"),
-	Stagger UMETA(DisplayName = "Stagger")
+	Stagger UMETA(DisplayName = "Stagger"),
+	Stun UMETA(DisplayName = "Stun")
 };
 
 USTRUCT(BlueprintType)

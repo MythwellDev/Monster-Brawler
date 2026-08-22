@@ -23,12 +23,18 @@ void UBrawlerHealthComponent::BeginPlay()
 			CurrentHealth);
 	}
 }
-
+/*=====================================
+			Health Accessors
+=====================================*/
 bool UBrawlerHealthComponent::IsAlive() const
 {
 	return CurrentHealth > 0.f;
 }
 
+
+/*=====================================
+			Damage Handling
+=====================================*/
 void UBrawlerHealthComponent::ReceiveDamage(float DamageAmount, ABrawlerCharacter* Attacker, float KnockbackAmount, EHitReactionType HitReactionType)
 {
 	if (!OwnerBrawler || !IsAlive())
