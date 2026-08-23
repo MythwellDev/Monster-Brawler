@@ -630,7 +630,7 @@ FVector UBrawlerGrabComponent::GetThrowDirection() const
 {
 	if (!OwnerBrawler)
 	{
-		return FVector::ForwardVector;
+		return FVector::ZeroVector;
 	}
 
 	const AActor* ThrownActor = HeldThrowable;
@@ -640,56 +640,53 @@ FVector UBrawlerGrabComponent::GetThrowDirection() const
 		ThrownActor = GrabbedTarget;
 	}
 
-	const FVector ThrowOrigin =
-		ThrownActor
-		? ThrownActor->GetActorLocation()
-		: OwnerBrawler->GetActorLocation();
+	const FVector ThrowOrigin = ThrownActor ? ThrownActor->GetActorLocation() : OwnerBrawler->GetActorLocation();
 
-	UBrawlerTargetingComponent* TargetingComp =
-		OwnerBrawler->GetTargetingComponent();
+	UBrawlerTargetingComponent* TargetingComp = OwnerBrawler->GetTargetingComponent();
 
 	if (TargetingComp)
 	{
-		AActor* LockedTarget = TargetingComp->GetCurrentTarget();
-
-		if (IsValid(LockedTarget) && LockedTarget != ThrownActor)
+		// Preserve hard lock-on aiming when a target is selected.
+		if (AActor* LockedTarget = TargetingComp->GetCurrentTarget())
 		{
-			FVector TargetCenter;
-			FVector TargetExtent;
+			if (IsValid(LockedTarget) && LockedTarget != ThrownActor)
+			{
+				FVector TargetCenter;
+				FVector TargetExtent;
 
-			LockedTarget->GetActorBounds(
-				false,
-				TargetCenter,
-				TargetExtent
-			);
+				LockedTarget->GetActorBounds(true, TargetCenter, TargetExtent);
 
-			FVector ThrowDirection =
-				TargetCenter - ThrowOrigin;
+				FVector Direction = TargetCenter - ThrowOrigin;
 
-			const float HorizontalDistance =
-				FVector::Dist2D(TargetCenter, ThrowOrigin);
+				const float HorizontalDistance = FVector::Dist2D(TargetCenter, ThrowOrigin);
 
-			ThrowDirection.Z +=
-				HorizontalDistance * ThrowArcBias;
+				Direction.Z += HorizontalDistance * ThrowArcBias;
 
-			return ThrowDirection.GetSafeNormal();
+				return Direction.GetSafeNormal();
+			}
+		}
+
+		// Free aiming through the center of the camera.
+		FVector AimPoint;
+
+		if (TargetingComp->GetPlayerAimPoint(AimPoint, ThrownActor))
+		{
+			FVector Direction =	AimPoint - ThrowOrigin;
+
+			const float HorizontalDistance = FVector::Dist2D(AimPoint, ThrowOrigin);
+
+			Direction.Z += HorizontalDistance * ThrowArcBias;
+
+			return Direction.GetSafeNormal();
 		}
 	}
 
-	// No valid locked target: throw forward.
-	const FRotator ControlRotation =
-		OwnerBrawler->GetControlRotation();
+	// Last-resort fallback if no camera/controller is available.
+	FVector Direction =	OwnerBrawler->GetActorForwardVector();
 
-	const FRotator YawRotation(
-		0.f,
-		ControlRotation.Yaw,
-		0.f
-	);
+	Direction.Z = ThrowArcBias;
 
-	FVector ThrowDirection = YawRotation.Vector();
-	ThrowDirection.Z = ThrowArcBias;
-
-	return ThrowDirection.GetSafeNormal();
+	return Direction.GetSafeNormal();
 }
 
 void UBrawlerGrabComponent::UpdateThrowableCandidate()

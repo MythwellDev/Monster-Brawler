@@ -65,4 +65,11 @@ protected:
 
 	void FindTarget();
 	void UpdateCombatCamera(float DeltaTime);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Targeting")
+	bool GetPlayerAimPoint(FVector& OutAimPoint, const AActor* ActorToIgnore = nullptr) const;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Targeting")
+	float AimTraceDistance = 5000.f;
 };

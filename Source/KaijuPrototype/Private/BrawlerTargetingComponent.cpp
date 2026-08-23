@@ -1,7 +1,12 @@
+
 #include "BrawlerTargetingComponent.h"
 #include "BrawlerCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Engine/World.h"
+#include "DrawDebugHelpers.h"
 
 UBrawlerTargetingComponent::UBrawlerTargetingComponent()
 {
@@ -23,10 +28,7 @@ void UBrawlerTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	{
 		ABrawlerCharacter* TargetBrawler = Cast<ABrawlerCharacter>(CurrentTarget);
 
-		const float Distance = FVector::Dist(
-			OwnerBrawler->GetActorLocation(),
-			CurrentTarget->GetActorLocation()
-		);
+		const float Distance = FVector::Dist(OwnerBrawler->GetActorLocation(), CurrentTarget->GetActorLocation());
 
 		if (!TargetBrawler || !TargetBrawler->IsAlive() || Distance > TargetSearchRadius)
 		{
@@ -62,11 +64,7 @@ void UBrawlerTargetingComponent::FindTarget()
 
 	TArray<AActor*> FoundActors;
 
-	UGameplayStatics::GetAllActorsOfClass(
-		GetWorld(),
-		ABrawlerCharacter::StaticClass(),
-		FoundActors
-	);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABrawlerCharacter::StaticClass(), FoundActors);
 
 	AActor* BestTarget = nullptr;
 	float BestDistance = TargetSearchRadius;
@@ -84,10 +82,7 @@ void UBrawlerTargetingComponent::FindTarget()
 			continue;
 		}
 
-		const float Distance = FVector::Dist(
-			OwnerBrawler->GetActorLocation(),
-			Brawler->GetActorLocation()
-		);
+		const float Distance = FVector::Dist(OwnerBrawler->GetActorLocation(), Brawler->GetActorLocation());
 
 		if (Distance < BestDistance)
 		{
@@ -117,20 +112,10 @@ void UBrawlerTargetingComponent::UpdateCombatCamera(float DeltaTime)
 	const float DesiredArmLength = bTargeting ? TargetingArmLength : DefaultArmLength;
 	const FVector DesiredSocketOffset = bTargeting ? TargetingSocketOffset : DefaultSocketOffset;
 
-	SpringArm->TargetArmLength = FMath::FInterpTo(
-		SpringArm->TargetArmLength,
-		DesiredArmLength,
-		DeltaTime,
-		CameraPresetInterpSpeed
-	);
+	SpringArm->TargetArmLength = FMath::FInterpTo(SpringArm->TargetArmLength, DesiredArmLength, DeltaTime, CameraPresetInterpSpeed);
 
-	SpringArm->SocketOffset = FMath::VInterpTo(
-		SpringArm->SocketOffset,
-		DesiredSocketOffset,
-		DeltaTime,
-		CameraPresetInterpSpeed
-	);
-
+	SpringArm->SocketOffset = FMath::VInterpTo(SpringArm->SocketOffset, DesiredSocketOffset, DeltaTime, CameraPresetInterpSpeed);
+	
 	if (!bTargeting)
 	{
 		return;
@@ -142,20 +127,51 @@ void UBrawlerTargetingComponent::UpdateCombatCamera(float DeltaTime)
 		return;
 	}
 
-	const FVector ToTarget =
-		(CurrentTarget->GetActorLocation() - OwnerBrawler->GetActorLocation()).GetSafeNormal();
+	const FVector ToTarget = (CurrentTarget->GetActorLocation() - OwnerBrawler->GetActorLocation()).GetSafeNormal();
 
 	FRotator DesiredRotation = ToTarget.Rotation();
 	DesiredRotation.Yaw += TargetingYawOffset;
 	DesiredRotation.Pitch = TargetingPitch;
 	DesiredRotation.Roll = 0.f;
 
-	const FRotator NewRotation = FMath::RInterpTo(
-		Controller->GetControlRotation(),
-		DesiredRotation,
-		DeltaTime,
-		CameraPresetInterpSpeed
-	);
+	const FRotator NewRotation = FMath::RInterpTo(Controller->GetControlRotation(), DesiredRotation, DeltaTime, CameraPresetInterpSpeed);
 
 	Controller->SetControlRotation(NewRotation);
+}
+
+bool UBrawlerTargetingComponent::GetPlayerAimPoint(FVector& OutAimPoint, const AActor* ActorToIgnore) const
+{
+	if (!OwnerBrawler)
+	{
+		return false;
+	}
+	
+	APlayerController* PlayerController = Cast<APlayerController>(OwnerBrawler->GetController());
+	if (!PlayerController || !PlayerController->PlayerCameraManager)
+	{
+		return false;
+	}
+	
+	FVector CameraLocation;
+	
+	FRotator CameraRotation;
+	
+	PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+	
+	const FVector TraceEnd = CameraLocation + (CameraRotation.Vector() * AimTraceDistance);
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(OwnerBrawler);
+	if (ActorToIgnore)
+	{
+		QueryParams.AddIgnoredActor(ActorToIgnore);
+	}
+
+	FHitResult HitResult;
+	
+	const bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, TraceEnd, ECC_Visibility, QueryParams);
+
+	OutAimPoint = bHit ? HitResult.ImpactPoint : TraceEnd;
+	
+	return true;
 }
