@@ -307,6 +307,14 @@ void UBrawlerGrabComponent::ThrowGrabbedTarget()
 
 	const FVector ThrowDirection = GetThrowDirection();
 
+	UBrawlerThrowableComponent* ThrowableComp =
+		Target->FindComponentByClass<UBrawlerThrowableComponent>();
+
+	if (ThrowableComp)
+	{
+		ThrowableComp->BeginThrow(OwnerBrawler);
+	}
+
 	GrabbedTarget = nullptr;
 
 	Target->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);

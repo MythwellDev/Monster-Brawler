@@ -21,7 +21,7 @@ protected:
 	UPROPERTY()
 	ABrawlerCharacter* OwnerBrawler;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health")
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Health")
 	float MaxHealth = 100.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
