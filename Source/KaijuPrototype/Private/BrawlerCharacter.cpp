@@ -86,6 +86,11 @@ bool ABrawlerCharacter::IsAlive() const
 	return HealthComponent && HealthComponent->IsAlive() && CurrentState != EBrawlerState::Dead;
 }
 
+void ABrawlerCharacter::SetHyperArmor(bool bEnabled)
+{
+	bHasHyperArmor = bEnabled;
+}
+
 
 /*=====================================
 			Combat Accessors		

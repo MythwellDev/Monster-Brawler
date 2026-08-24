@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,47 +6,81 @@
 
 class ABrawlerCharacter;
 
-/**
- * 
- */
 UCLASS()
-class KAIJUPROTOTYPE_API ABrawlerAIController : public AAIController
+class KAIJUPROTOTYPE_API ABrawlerAIController
+    : public AAIController
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
 
 public:
-	ABrawlerAIController();
+    ABrawlerAIController();
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
-	UPROPERTY()
-	ABrawlerCharacter* ControlledBrawler = nullptr;
+    UPROPERTY()
+    ABrawlerCharacter* ControlledBrawler = nullptr;
 
-	UPROPERTY()
-	AActor* TargetActor = nullptr;
+    UPROPERTY()
+    AActor* TargetActor = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	float AttackRange = 350.f;
+    /*=====================================
+                    Movement
+    =====================================*/
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	float MoveAcceptanceRadius = 150.f;
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Movement")
+    float MoveAcceptanceRadius = 150.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	float DecisionInterval = 0.2f;
+    /*=====================================
+                    Combat
+    =====================================*/
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	float AttackCooldown = 1.2f;
+    // Maximum range at which the AI will attempt any attack.
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Combat")
+    float MaximumAttackRange = 400.f;
 
-	bool bCanAttack = true;
+    // At this distance, the AI may choose either attack.
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Combat")
+    float CloseAttackRange = 250.f;
 
-	FTimerHandle DecisionTimerHandle;
-	FTimerHandle AttackCooldownTimerHandle;
+    // Chance to use a heavy attack while within close range.
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Combat", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+    float CloseRangeHeavyChance = 0.35f;
 
-	void RunDecision();
-	void FindTarget();
-	void MoveToTarget();
-	void TryAttack();
-	void ResetAttackCooldown();
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Combat")
+    float MinimumAttackCooldown = 1.0f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Combat")
+    float MaximumAttackCooldown = 1.8f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Combat")
+    float HeavyAttackCooldown = 4.5f;
+
+    bool bCanUseHeavyAttack = true;
+    bool bLastAttackWasHeavy = false;
+
+    FTimerHandle HeavyAttackCooldownTimerHandle;
+
+    void ResetHeavyAttackCooldown();
+
+    /*=====================================
+                    Decisions
+    =====================================*/
+
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Decision")
+    float DecisionInterval = 0.2f;
+
+    bool bCanAttack = true;
+
+    FTimerHandle DecisionTimerHandle;
+    FTimerHandle AttackCooldownTimerHandle;
+
+    void RunDecision();
+    void FindTarget();
+    void MoveToTarget();
+    void TryAttack(float DistanceToTarget);
+    void ResetAttackCooldown();
+
+    bool HasValidTarget() const;
+    void StartAttackCooldown();
 };

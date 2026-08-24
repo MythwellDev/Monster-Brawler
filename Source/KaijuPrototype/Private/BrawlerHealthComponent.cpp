@@ -39,32 +39,62 @@ bool UBrawlerHealthComponent::IsAlive() const
 =====================================*/
 void UBrawlerHealthComponent::ReceiveDamage(float DamageAmount, ABrawlerCharacter* Attacker, float KnockbackAmount, EHitReactionType HitReactionType)
 {
-	if (!OwnerBrawler || !IsAlive())
-	{
-		return;
-	}
+    if (!OwnerBrawler || !IsAlive())
+    {
+        return;
+    }
 
-	float FinalDamage = DamageAmount;
+    float FinalDamage = DamageAmount;
 
-	if (UBrawlerCombatComponent* CombatComp = OwnerBrawler->GetCombatComponent())
-	{
-		if (CombatComp->IsBlocking())
-		{
-			FinalDamage *= CombatComp->GetBlockDamageMultiplier();
-		}
-	}
+    if (UBrawlerCombatComponent* CombatComp = OwnerBrawler->GetCombatComponent())
+    {
+        if (CombatComp->IsBlocking())
+        {
+            FinalDamage *= CombatComp->GetBlockDamageMultiplier();
+        }
+    }
 
-	CurrentHealth = FMath::Clamp(CurrentHealth - FinalDamage, 0.f, MaxHealth);
+    CurrentHealth = FMath::Clamp(CurrentHealth - FinalDamage, 0.f, MaxHealth);
 
-	UE_LOG(LogTemp, Warning, TEXT("%s took %f damage from %s. Health: %f"),
-		*OwnerBrawler->GetName(),
-		DamageAmount,
-		Attacker ? *Attacker->GetName() : TEXT("Unknown"),
-		CurrentHealth);
+    UE_LOG(LogTemp, Warning, TEXT("%s took %f damage from %s. Health: %f"),
+        *OwnerBrawler->GetName(),
+        FinalDamage,
+        Attacker ? *Attacker->GetName() : TEXT("Unknown"),
+        CurrentHealth);
+
+    if (CurrentHealth <= 0.f)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("%s DIED"), *OwnerBrawler->GetName());
+
+        OwnerBrawler->SetHyperArmor(false);
+        OwnerBrawler->SetBrawlerState(EBrawlerState::Dead);
+
+        if (UBrawlerThrowableComponent* ThrowableComp = OwnerBrawler->FindComponentByClass<UBrawlerThrowableComponent>())
+        {
+            ThrowableComp->bCanBePickedUp = false;
+        }
+
+        const float MontageDuration = Montage ? OwnerBrawler->PlayAnimMontage(Montage) : 0.f;
+
+        if (MontageDuration <= 0.f)
+        {
+            OwnerBrawler->FinishDeathAnimation();
+        }
+
+        OwnerBrawler->GetCharacterMovement()->DisableMovement();
+        return;
+    }
+
+    // Hyper armor allows damage but prevents knockback and interruption.
+    if (OwnerBrawler->HasHyperArmor())
+    {
+        return;
+    }
 
     if (Attacker)
     {
-        FVector Direction = OwnerBrawler->GetActorLocation() - Attacker->GetActorLocation();
+        FVector Direction =
+            OwnerBrawler->GetActorLocation() - Attacker->GetActorLocation();
 
         Direction = Direction.GetSafeNormal();
         Direction.Z = 0.25f;
@@ -73,43 +103,9 @@ void UBrawlerHealthComponent::ReceiveDamage(float DamageAmount, ABrawlerCharacte
         OwnerBrawler->LaunchCharacter(Direction * KnockbackAmount, true, true);
     }
 
-    if (CurrentHealth <= 0.f)
-    {
-        UE_LOG(
-            LogTemp,
-            Warning,
-            TEXT("%s DIED"),
-            *OwnerBrawler->GetName()
-        );
-
-        OwnerBrawler->SetBrawlerState(EBrawlerState::Dead);
-
-        // Do not allow the body to be picked up while its
-        // death animation is still playing.
-        if (UBrawlerThrowableComponent* ThrowableComp = OwnerBrawler->FindComponentByClass<UBrawlerThrowableComponent>())
-        {
-            ThrowableComp->bCanBePickedUp = false;
-        }
-
-        const float MontageDuration =
-            Montage ? OwnerBrawler->PlayAnimMontage(Montage) : 0.f;
-
-        // Ensure corpses without a usable montage do not
-        // remain permanently unavailable.
-        if (MontageDuration <= 0.f)
-        {
-            OwnerBrawler->FinishDeathAnimation();
-        }
-
-        OwnerBrawler->GetCharacterMovement()->DisableMovement();
-
-        return;
-    }
-
     if (UBrawlerCombatComponent* CombatComp = OwnerBrawler->GetCombatComponent())
     {
         OwnerBrawler->SetBrawlerState(EBrawlerState::Stunned);
-
         CombatComp->PlayHitReaction(HitReactionType);
     }
 }

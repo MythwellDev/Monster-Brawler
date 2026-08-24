@@ -66,12 +66,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Brawler|Movement")
 	float SprintSpeed = 500.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Brawler|Combat")
+	bool bHasHyperArmor = false;
+
 	virtual void Landed(const FHitResult& Hit) override;
 
 	bool bRecoverFromThrowOnLanding = false;
 
 public:
-
 	/*======================================
 			State Accessors
 	======================================*/
@@ -81,6 +83,13 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Brawler|State")
 	EBrawlerState GetBrawlerState() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Brawler|Combat")
+	void SetHyperArmor(bool bEnabled);
+
+	UFUNCTION(BlueprintPure, Category = "Brawler|Combat")
+	bool HasHyperArmor() const { return bHasHyperArmor; } 
+	
 
 
 	/*======================================
