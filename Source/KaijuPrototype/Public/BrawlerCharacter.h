@@ -144,4 +144,11 @@ public:
 	=======================================*/
 
 	UBrawlerTargetingComponent* GetTargetingComponent() const { return TargetingComponent; }
+
+	/*=======================================
+				Death
+=======================================*/
+
+	UFUNCTION(BlueprintCallable, Category = "Brawler|Death")
+	void FinishDeathAnimation();
 };

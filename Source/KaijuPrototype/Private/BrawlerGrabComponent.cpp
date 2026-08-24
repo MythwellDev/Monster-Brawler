@@ -212,7 +212,10 @@ void UBrawlerGrabComponent::AttachTarget(ABrawlerCharacter* Target)
 	);
 
 	// Prevent the animated grab socket from moving while held.
-	Target->GetMesh()->bPauseAnims = true;
+	if (Target->IsAlive())
+	{
+		Target->GetMesh()->bPauseAnims = true;
+	}
 
 	UBrawlerThrowableComponent* ThrowableComp =
 		Target->FindComponentByClass<UBrawlerThrowableComponent>();

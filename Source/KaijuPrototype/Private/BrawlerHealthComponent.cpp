@@ -1,6 +1,8 @@
+
 #include "BrawlerHealthComponent.h"
 #include "BrawlerCharacter.h"
 #include "BrawlerCombatComponent.h"
+#include "BrawlerThrowableComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 UBrawlerHealthComponent::UBrawlerHealthComponent()
@@ -60,33 +62,54 @@ void UBrawlerHealthComponent::ReceiveDamage(float DamageAmount, ABrawlerCharacte
 		Attacker ? *Attacker->GetName() : TEXT("Unknown"),
 		CurrentHealth);
 
-	if (Attacker)
-	{
-		FVector Direction = (OwnerBrawler->GetActorLocation() - Attacker->GetActorLocation()).GetSafeNormal();
-		Direction.Z = 0.25f;
-		Direction.Normalize();
+    if (Attacker)
+    {
+        FVector Direction = OwnerBrawler->GetActorLocation() - Attacker->GetActorLocation();
 
-		OwnerBrawler->LaunchCharacter(Direction * KnockbackAmount, true, true);
-	}
+        Direction = Direction.GetSafeNormal();
+        Direction.Z = 0.25f;
+        Direction.Normalize();
 
-	if (CurrentHealth <= 0.f)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s DIED"), *OwnerBrawler->GetName());
+        OwnerBrawler->LaunchCharacter(Direction * KnockbackAmount, true, true);
+    }
 
-		OwnerBrawler->SetBrawlerState(EBrawlerState::Dead);
+    if (CurrentHealth <= 0.f)
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("%s DIED"),
+            *OwnerBrawler->GetName()
+        );
 
-		if (Montage)
-		{
-			OwnerBrawler->PlayAnimMontage(Montage);
-		}
+        OwnerBrawler->SetBrawlerState(EBrawlerState::Dead);
 
-		OwnerBrawler->GetCharacterMovement()->DisableMovement();
-		return;
-	}
+        // Do not allow the body to be picked up while its
+        // death animation is still playing.
+        if (UBrawlerThrowableComponent* ThrowableComp = OwnerBrawler->FindComponentByClass<UBrawlerThrowableComponent>())
+        {
+            ThrowableComp->bCanBePickedUp = false;
+        }
 
-	if (UBrawlerCombatComponent* CombatComp = OwnerBrawler->GetCombatComponent())
-	{
-		OwnerBrawler->SetBrawlerState(EBrawlerState::Stunned);
-		CombatComp->PlayHitReaction(HitReactionType);
-	}
+        const float MontageDuration =
+            Montage ? OwnerBrawler->PlayAnimMontage(Montage) : 0.f;
+
+        // Ensure corpses without a usable montage do not
+        // remain permanently unavailable.
+        if (MontageDuration <= 0.f)
+        {
+            OwnerBrawler->FinishDeathAnimation();
+        }
+
+        OwnerBrawler->GetCharacterMovement()->DisableMovement();
+
+        return;
+    }
+
+    if (UBrawlerCombatComponent* CombatComp = OwnerBrawler->GetCombatComponent())
+    {
+        OwnerBrawler->SetBrawlerState(EBrawlerState::Stunned);
+
+        CombatComp->PlayHitReaction(HitReactionType);
+    }
 }

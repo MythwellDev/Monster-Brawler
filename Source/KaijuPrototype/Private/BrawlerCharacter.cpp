@@ -38,6 +38,31 @@ void ABrawlerCharacter::BeginPlay()
 	SetBrawlerState(EBrawlerState::Idle);
 }
 
+void ABrawlerCharacter::FinishDeathAnimation()
+{
+	if (CurrentState != EBrawlerState::Dead)
+	{
+		return;
+	}
+
+	if (USkeletalMeshComponent* CharacterMesh = GetMesh())
+	{
+		if (UAnimInstance* AnimInstance =
+			CharacterMesh->GetAnimInstance())
+		{
+			if (UAnimMontage* ActiveMontage =
+				AnimInstance->GetCurrentActiveMontage())
+			{
+				AnimInstance->Montage_Pause(ActiveMontage);
+			}
+		}
+	}
+
+	if (ThrowableComponent)
+	{
+		ThrowableComponent->bCanBePickedUp = true;
+	}
+}
 /*=====================================
 			State Accessors
 =====================================*/
