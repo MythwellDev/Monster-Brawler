@@ -4,6 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
+
 ABrawlerAIController::ABrawlerAIController()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -18,6 +19,53 @@ void ABrawlerAIController::BeginPlay()
     FindTarget();
 
     GetWorldTimerManager().SetTimer(DecisionTimerHandle, this, &ABrawlerAIController::RunDecision, DecisionInterval, true);
+}
+
+void ABrawlerAIController::FaceTarget()
+{
+    if (!ControlledBrawler || !TargetActor)
+    {
+        return;
+    }
+
+    FVector DirectionToTarget =
+        TargetActor->GetActorLocation() - ControlledBrawler->GetActorLocation();
+
+    DirectionToTarget.Z = 0.f;
+
+    if (DirectionToTarget.IsNearlyZero())
+    {
+        return;
+    }
+
+    const FRotator DesiredRotation = DirectionToTarget.Rotation();
+    const FRotator NewRotation = FMath::RInterpConstantTo(
+        ControlledBrawler->GetActorRotation(),
+        DesiredRotation,
+        DecisionInterval,
+        FacingRotationSpeed);
+
+    ControlledBrawler->SetActorRotation(NewRotation);
+}
+
+bool ABrawlerAIController::IsFacingTarget() const
+{
+    if (!ControlledBrawler || !TargetActor)
+    {
+        return false;
+    }
+
+    FVector DirectionToTarget =
+        TargetActor->GetActorLocation() - ControlledBrawler->GetActorLocation();
+
+    DirectionToTarget.Z = 0.f;
+    DirectionToTarget.Normalize();
+
+    const FVector Forward = ControlledBrawler->GetActorForwardVector();
+    const float FacingDot = FVector::DotProduct(Forward, DirectionToTarget);
+    const float MinimumFacingDot = FMath::Cos(FMath::DegreesToRadians(AttackFacingTolerance));
+
+    return FacingDot >= MinimumFacingDot;
 }
 
 void ABrawlerAIController::FindTarget()
@@ -78,6 +126,13 @@ void ABrawlerAIController::RunDecision()
     }
 
     StopMovement();
+    FaceTarget();
+
+    if (!IsFacingTarget())
+    {
+        return;
+    }
+
     TryAttack(DistanceToTarget);
 }
 

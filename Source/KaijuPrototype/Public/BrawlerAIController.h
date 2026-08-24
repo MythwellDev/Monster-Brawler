@@ -24,6 +24,16 @@ protected:
     UPROPERTY()
     AActor* TargetActor = nullptr;
 
+	UPROPERTY(EditDefaultsOnly, Category = "AI|Combat")
+    float FacingRotationSpeed = 360.f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "AI|Combat")
+    float AttackFacingTolerance = 20.f;
+
+	void FaceTarget();
+
+    bool IsFacingTarget() const;
+
     /*=====================================
                     Movement
     =====================================*/
