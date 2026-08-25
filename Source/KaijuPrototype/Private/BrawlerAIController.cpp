@@ -143,7 +143,7 @@ void ABrawlerAIController::MoveToTarget()
         return;
     }
 
-    MoveToActor(TargetActor, MoveAcceptanceRadius);
+    MoveToActor(TargetActor, MoveAcceptanceRadius, true, true, false, nullptr, false);
 }
 
 void ABrawlerAIController::TryAttack(float DistanceToTarget)
