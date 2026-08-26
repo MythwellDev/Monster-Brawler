@@ -1,4 +1,5 @@
 #include "BrawlerAIController.h"
+#include "Navigation/PathFollowingComponent.h"
 
 #include "BrawlerCharacter.h"
 #include "Kismet/GameplayStatics.h"
@@ -17,8 +18,17 @@ void ABrawlerAIController::BeginPlay()
     ControlledBrawler = Cast<ABrawlerCharacter>(GetPawn());
 
     FindTarget();
+}
 
-    GetWorldTimerManager().SetTimer(DecisionTimerHandle, this, &ABrawlerAIController::RunDecision, DecisionInterval, true);
+void ABrawlerAIController::OnPossess(APawn* InPawn)
+{
+    Super::OnPossess(InPawn);
+
+    ControlledBrawler = Cast<ABrawlerCharacter>(InPawn);
+	FindTarget();
+
+	GetWorldTimerManager().ClearTimer(DecisionTimerHandle);
+	GetWorldTimerManager().SetTimer(DecisionTimerHandle, this, &ABrawlerAIController::RunDecision, DecisionInterval, true);
 }
 
 void ABrawlerAIController::FaceTarget()
@@ -101,14 +111,16 @@ void ABrawlerAIController::RunDecision()
 
     if (!HasValidTarget())
     {
-        StopMovement();
-        ClearFocus(EAIFocusPriority::Gameplay);
         FindTarget();
-        return;
+
+        if (!HasValidTarget())
+        {
+            StopMovement();
+            ClearFocus(EAIFocusPriority::Gameplay);
+            return;
+        }
     }
 
-    // Do not issue movement or attack commands while another
-    // gameplay state owns the character.
     if (ControlledBrawler->GetBrawlerState() != EBrawlerState::Idle)
     {
         StopMovement();
@@ -142,6 +154,13 @@ void ABrawlerAIController::MoveToTarget()
     {
         return;
     }
+
+    if (GetMoveStatus() == EPathFollowingStatus::Moving)
+    {
+        return;
+	}
+
+	const EPathFollowingRequestResult::Type MoveResult = MoveToActor(TargetActor, MoveAcceptanceRadius, true, true, false, nullptr, false);
 
     MoveToActor(TargetActor, MoveAcceptanceRadius, true, true, false, nullptr, false);
 }
