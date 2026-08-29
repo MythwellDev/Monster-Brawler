@@ -101,17 +101,19 @@ void UBrawlerCombatComponent::ResetCombo()
 
 void UBrawlerCombatComponent::PlayAttackMontage(const FBrawlerAttackData& AttackData)
 {
-	if (!OwnerBrawler)
-	{
-		return;
-	}
+	if (!OwnerBrawler) return;
 
-	UAnimInstance* AnimInstance = OwnerBrawler->GetMesh()
-		? OwnerBrawler->GetMesh()->GetAnimInstance()
-		: nullptr;
+	UAnimInstance* AnimInstance = OwnerBrawler->GetMesh() ? OwnerBrawler->GetMesh()->GetAnimInstance() : nullptr;
 
 	if (!AnimInstance || !AttackData.Montage)
 	{
+		ResetCombo();
+
+		if (OwnerBrawler->GetBrawlerState() == EBrawlerState::Attacking)
+		{
+			OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
+		}
+
 		return;
 	}
 
@@ -120,7 +122,12 @@ void UBrawlerCombatComponent::PlayAttackMontage(const FBrawlerAttackData& Attack
 	if (Duration <= 0.f)
 	{
 		ResetCombo();
-		OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
+		
+		if (OwnerBrawler->GetBrawlerState() == EBrawlerState::Attacking)
+		{
+			OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
+		}
+
 		return;
 	}
 
@@ -201,8 +208,8 @@ void UBrawlerCombatComponent::PerformHitTrace()
 		Params
 	);
 
-	DrawDebugSphere(GetWorld(), End, CurrentAttack.TraceRadius, 16, FColor::Red, false, 1.f);
-	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.f, 0, 3.f);
+	//DrawDebugSphere(GetWorld(), End, CurrentAttack.TraceRadius, 16, FColor::Red, false, 1.f);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.f, 0, 3.f);
 
 	if (!bHit)
 	{
@@ -239,9 +246,7 @@ void UBrawlerCombatComponent::PerformHitTrace()
 	}
 }
 
-void UBrawlerCombatComponent::PlayHitReaction(
-	EHitReactionType ReactionType
-)
+void UBrawlerCombatComponent::PlayHitReaction(EHitReactionType ReactionType)
 {
 	if (!OwnerBrawler)
 	{
@@ -291,19 +296,6 @@ void UBrawlerCombatComponent::PlayHitReaction(
 
 	// No configured reaction matched ReactionType.
 	OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
-}
-
-void UBrawlerCombatComponent::OnHitReactionMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-	if (!OwnerBrawler)
-	{
-		return;
-	}
-
-	if (OwnerBrawler->GetBrawlerState() == EBrawlerState::Stunned)
-	{
-		OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
-	}
 }
 
 void UBrawlerCombatComponent::StartBlock()
@@ -416,4 +408,38 @@ void UBrawlerCombatComponent::PlayHitStop(float Duration)
 		Duration,
 		false
 	);
+}
+
+void UBrawlerCombatComponent::OnHitReactionMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (!OwnerBrawler)
+	{
+		return;
+	}
+
+	if (OwnerBrawler->GetBrawlerState() != EBrawlerState::Stunned)
+	{
+		return;
+	}
+
+	OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
+	bHasHitReactionImmunity = true;
+
+	GetWorld()->GetTimerManager().ClearTimer(HitReactionImmunityTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(
+		HitReactionImmunityTimerHandle,
+		this,
+		&UBrawlerCombatComponent::EndHitReactionImmunity,
+		HitReactionImmunityDuration,
+		false);
+}
+
+bool UBrawlerCombatComponent::HasHitReactionImmunity() const
+{
+	return bHasHitReactionImmunity;
+}
+
+void UBrawlerCombatComponent::EndHitReactionImmunity()
+{
+	bHasHitReactionImmunity = false;
 }

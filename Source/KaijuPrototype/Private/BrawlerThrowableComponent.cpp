@@ -32,40 +32,50 @@ void UBrawlerThrowableComponent::BeginThrow(ABrawlerCharacter* InThrower)
 	bIsInFlight = true;
 	bHasDealtImpactDamage = false;
 	bCanBePickedUp = false;
+
+	GetWorld()->GetTimerManager().ClearTimer(FlightTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(FlightTimerHandle, this, &UBrawlerThrowableComponent::FinishThrow, MaximumFlightTime, false);
 }
 
-void UBrawlerThrowableComponent::HandleThrowableHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent,	FVector NormalImpulse, const FHitResult& Hit)
+void UBrawlerThrowableComponent::HandleThrowableHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (!bIsInFlight ||
-		bHasDealtImpactDamage ||
-		!OtherActor ||
-		OtherActor == GetOwner())
-	{
-		return;
-	}
+    if (!bIsInFlight || bHasDealtImpactDamage || !OtherActor || OtherActor == GetOwner())
+    {
+        return;
+    }
 
-	// Prevent the pipe from damaging its thrower upon release.
-	if (OtherActor == Thrower)
-	{
-		return;
-	}
+    if (OtherActor == Thrower)
+    {
+        return;
+    }
 
-	ABrawlerCharacter* HitBrawler =
-		Cast<ABrawlerCharacter>(OtherActor);
+    ABrawlerCharacter* HitBrawler = Cast<ABrawlerCharacter>(OtherActor);
 
-	if (HitBrawler && HitBrawler->IsAlive())
-	{
-		bHasDealtImpactDamage = true;
+    if (HitBrawler && HitBrawler->IsAlive())
+    {
+        bHasDealtImpactDamage = true;
+        HitBrawler->ReceiveDamage(ImpactDamage, Thrower, ImpactKnockback, ImpactReactionType);
+        FinishThrow();
+        return;
+    }
 
-		HitBrawler->ReceiveDamage(
-			ImpactDamage,
-			Thrower,
-			ImpactKnockback,
-			ImpactReactionType
-		);
-	}
+    const float CurrentSpeed = ThrowablePrimitive
+        ? ThrowablePrimitive->GetPhysicsLinearVelocity().Size()
+        : 0.f;
 
-	// The first valid collision ends this throw.
-	bIsInFlight = false;
-	bCanBePickedUp = true;
+    if (CurrentSpeed < MinimumDamagingSpeed)
+    {
+        FinishThrow();
+    }
+}
+
+void UBrawlerThrowableComponent::FinishThrow()
+{
+    bIsInFlight = false;
+    bCanBePickedUp = true;
+
+    if (GetWorld())
+    {
+        GetWorld()->GetTimerManager().ClearTimer(FlightTimerHandle);
+    }
 }

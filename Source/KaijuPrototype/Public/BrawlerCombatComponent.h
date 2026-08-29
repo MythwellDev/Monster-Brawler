@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "BrawlerCombatTypes.h"
+#include "TimerManager.h"
 #include "BrawlerCombatComponent.generated.h"
 
 class ABrawlerCharacter;
@@ -61,6 +62,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blocking")
 	bool bIsBlocking = false;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Hit Reactions")
+	float HitReactionImmunityDuration = 0.6f;
+
+	bool bHasHitReactionImmunity = false;
+
+	FTimerHandle HitReactionImmunityTimerHandle;
+
+	void EndHitReactionImmunity();
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void LightAttack();
@@ -93,6 +103,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Blocking")
 	float GetBlockDamageMultiplier() const { return BlockDamageMultiplier; }
+	
+	bool HasHitReactionImmunity() const;
 
 protected:
 	void StartAttackFromSet(const TArray<FBrawlerAttackData>& AttackSet, int32 AttackIndex);

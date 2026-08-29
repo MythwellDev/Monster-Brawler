@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "Components/PrimitiveComponent.h"
 
 ABrawlerCharacter::ABrawlerCharacter()
 {
@@ -18,7 +19,7 @@ ABrawlerCharacter::ABrawlerCharacter()
 	GrabComponent = CreateDefaultSubobject<UBrawlerGrabComponent>(TEXT("GrabComponent"));
 	ClimbComponent = CreateDefaultSubobject<UBrawlerClimbComponent>(TEXT("ClimbComponent"));
 	TargetingComponent = CreateDefaultSubobject<UBrawlerTargetingComponent>(TEXT("TargetingComponent"));
-	ThrowableComponent = CreateDefaultSubobject<UBrawlerThrowableComponent>(TEXT("ThrowableComponent"));
+	ThrowableComponent = CreateDefaultSubobject<UBrawlerThrowableComponent>(TEXT("BrawlerThrowableComponent"));
 
 	bUseControllerRotationYaw = false;
 
@@ -29,6 +30,17 @@ ABrawlerCharacter::ABrawlerCharacter()
 void ABrawlerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	TArray<UPrimitiveComponent*> PrimitiveComponents;
+	GetComponents<UPrimitiveComponent>(PrimitiveComponents);
+
+	for (UPrimitiveComponent* Primitive : PrimitiveComponents)
+	{
+		if (Primitive)
+		{
+			Primitive->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+		}
+	}
 
 	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
 	{

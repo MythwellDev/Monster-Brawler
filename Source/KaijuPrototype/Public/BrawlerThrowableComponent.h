@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "BrawlerCombatTypes.h"
+#include "TimerManager.h"
 #include "BrawlerThrowableComponent.generated.h"
 
 class ABrawlerCharacter;
@@ -78,4 +79,14 @@ protected:
 
 	bool bIsInFlight = false;
 	bool bHasDealtImpactDamage = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Throwable|Flight")
+	float MaximumFlightTime = 3.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Throwable|Flight")
+	float MinimumDamagingSpeed = 200.f;
+
+	FTimerHandle FlightTimerHandle;
+
+	void FinishThrow();
 };

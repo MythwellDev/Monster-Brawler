@@ -85,17 +85,29 @@ void UBrawlerHealthComponent::ReceiveDamage(float DamageAmount, ABrawlerCharacte
         return;
     }
 
-    // Hyper armor allows damage but prevents knockback and interruption.
+    // Damage is still applied, but hyper armor prevents interruption.
     if (OwnerBrawler->HasHyperArmor())
     {
         return;
     }
 
+    // Do not restart hit reactions or apply repeated knockback while stunned.
+    if (OwnerBrawler->GetBrawlerState() == EBrawlerState::Stunned)
+    {
+        return;
+    }
+
+    if (UBrawlerCombatComponent* CombatComp = OwnerBrawler->GetCombatComponent())
+    {
+        if (CombatComp->HasHitReactionImmunity())
+        {
+            return;
+        }
+    }
+
     if (Attacker)
     {
-        FVector Direction =
-            OwnerBrawler->GetActorLocation() - Attacker->GetActorLocation();
-
+        FVector Direction = OwnerBrawler->GetActorLocation() - Attacker->GetActorLocation();
         Direction = Direction.GetSafeNormal();
         Direction.Z = 0.25f;
         Direction.Normalize();

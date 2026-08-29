@@ -49,11 +49,7 @@ void ABrawlerAIController::FaceTarget()
     }
 
     const FRotator DesiredRotation = DirectionToTarget.Rotation();
-    const FRotator NewRotation = FMath::RInterpConstantTo(
-        ControlledBrawler->GetActorRotation(),
-        DesiredRotation,
-        DecisionInterval,
-        FacingRotationSpeed);
+    const FRotator NewRotation = FMath::RInterpConstantTo(ControlledBrawler->GetActorRotation(), DesiredRotation, DecisionInterval, FacingRotationSpeed);
 
     ControlledBrawler->SetActorRotation(NewRotation);
 }
@@ -65,8 +61,7 @@ bool ABrawlerAIController::IsFacingTarget() const
         return false;
     }
 
-    FVector DirectionToTarget =
-        TargetActor->GetActorLocation() - ControlledBrawler->GetActorLocation();
+    FVector DirectionToTarget = TargetActor->GetActorLocation() - ControlledBrawler->GetActorLocation();
 
     DirectionToTarget.Z = 0.f;
     DirectionToTarget.Normalize();
@@ -137,6 +132,27 @@ void ABrawlerAIController::RunDecision()
         return;
     }
 
+    if (!bCanAttack)
+    {
+        if (DistanceToTarget > CloseAttackRange)
+        {
+            MoveToTarget();
+        }
+        else
+        {
+            StopMovement();
+			FaceTarget();
+		}
+
+        return;
+    }
+
+    if (DistanceToTarget > CloseAttackRange && (!bCanUseHeavyAttack || bLastAttackWasHeavy))
+    {
+        MoveToTarget();
+        return;
+	}
+
     StopMovement();
     FaceTarget();
 
@@ -145,7 +161,7 @@ void ABrawlerAIController::RunDecision()
         return;
     }
 
-    TryAttack(DistanceToTarget);
+	TryAttack(DistanceToTarget);
 }
 
 void ABrawlerAIController::MoveToTarget()
@@ -162,7 +178,11 @@ void ABrawlerAIController::MoveToTarget()
 
 	const EPathFollowingRequestResult::Type MoveResult = MoveToActor(TargetActor, MoveAcceptanceRadius, true, true, false, nullptr, false);
 
-    MoveToActor(TargetActor, MoveAcceptanceRadius, true, true, false, nullptr, false);
+    if (MoveResult == EPathFollowingRequestResult::Failed)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("%s failed to move toward %s"), *GetNameSafe(ControlledBrawler), *GetNameSafe(TargetActor));
+	}
+
 }
 
 void ABrawlerAIController::TryAttack(float DistanceToTarget)
@@ -176,19 +196,7 @@ void ABrawlerAIController::TryAttack(float DistanceToTarget)
 
     if (DistanceToTarget > CloseAttackRange)
     {
-        // At outer range, only use the heavy attack when it
-        // is available and was not the previous attack.
-        if (bCanUseHeavyAttack && !bLastAttackWasHeavy)
-        {
-            bUseHeavyAttack = true;
-        }
-        else
-        {
-            // Move closer so the AI can use its light attack
-            // instead of waiting or spamming heavy attacks.
-            MoveToTarget();
-            return;
-        }
+		bUseHeavyAttack = bCanUseHeavyAttack && !bLastAttackWasHeavy;
     }
     else
     {

@@ -40,7 +40,7 @@ void UBrawlerClimbComponent::TryStartClimb()
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
 
-	DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.f);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 2.f);
 
 	if (!bHit) return;
     if (!Hit.GetActor()->ActorHasTag("Climbable")) return;
@@ -56,8 +56,9 @@ void UBrawlerClimbComponent::TryStartClimb()
 	OwnerBrawler->GetCharacterMovement()->StopMovementImmediately();
 	OwnerBrawler->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 	OwnerBrawler->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	UE_LOG(LogTemp, Warning, TEXT("Movement Mode After Set: %d"),
-		(int32)OwnerBrawler->GetCharacterMovement()->MovementMode);
+	
+	//UE_LOG(LogTemp, Warning, TEXT("Movement Mode After Set: %d"),
+		//(int32)OwnerBrawler->GetCharacterMovement()->MovementMode);
 
 	// 1. Face the wall FIRST
 	FRotator FaceWallRotation = (-Hit.ImpactNormal).Rotation();
@@ -78,7 +79,7 @@ void UBrawlerClimbComponent::TryStartClimb()
 
 	OwnerBrawler->SetActorLocation(ClimbLocation);
 
-	UE_LOG(LogTemp, Warning, TEXT("Started Climbing"));
+	//UE_LOG(LogTemp, Warning, TEXT("Started Climbing"));
 }
 
 bool UBrawlerClimbComponent::IsAtClimbGround() const
@@ -167,7 +168,7 @@ bool UBrawlerClimbComponent::IsWallStillClimbable() const
 		Params
 	);
 
-	DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 0.1f, 0, 5.f);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 0.1f, 0, 5.f);
 
 	return bHit && Hit.GetActor() && Hit.GetActor()->ActorHasTag("Climbable");
 }
@@ -200,7 +201,7 @@ bool UBrawlerClimbComponent::IsNearGround() const
 		Params
 	);
 
-	DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.1f, 0, 4.f);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0.1f, 0, 4.f);
 
 	return bHit && Hit.GetActor() && !Hit.GetActor()->ActorHasTag("Climbable");
 }
@@ -226,7 +227,7 @@ bool UBrawlerClimbComponent::TryMantleToTop()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(OwnerBrawler);
 
-	DrawDebugLine(GetWorld(), Start, End, FColor::Purple, false, 2.f, 0, 6.f);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Purple, false, 2.f, 0, 6.f);
 
 	const bool bHit = GetWorld()->LineTraceSingleByChannel(
 		Hit,
@@ -291,7 +292,7 @@ void UBrawlerClimbComponent::FinishMantle()
 	OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
 	OwnerBrawler->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 
-	UE_LOG(LogTemp, Warning, TEXT("Finished Mantle"));
+	//UE_LOG(LogTemp, Warning, TEXT("Finished Mantle"));
 }
 
 void UBrawlerClimbComponent::PlayMantleCameraShake()

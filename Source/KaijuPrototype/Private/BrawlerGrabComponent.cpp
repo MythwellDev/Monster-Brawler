@@ -165,8 +165,8 @@ ABrawlerCharacter* UBrawlerGrabComponent::FindGrabbableTarget() const
 		Params
 	);
 
-	DrawDebugSphere(GetWorld(), End, GrabRadius, 16, FColor::Blue, false, 1.f);
-	DrawDebugLine(GetWorld(), Start, End, FColor::Blue, false, 1.f, 0, 3.f);
+	//DrawDebugSphere(GetWorld(), End, GrabRadius, 16, FColor::Blue, false, 1.f);
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Blue, false, 1.f, 0, 3.f);
 
 	if (!bHit)
 	{
@@ -355,8 +355,8 @@ void UBrawlerGrabComponent::ThrowGrabbedTarget()
 		TargetMovement->SetMovementMode(MOVE_Falling);
 	}
 
-	Target->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
-	Target->GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
+	Target->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	Target->GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	Target->BeginThrownState();
 
@@ -372,16 +372,16 @@ void UBrawlerGrabComponent::ThrowGrabbedTarget()
 
 	OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
 
-	DrawDebugLine(
-		GetWorld(),
-		OwnerBrawler->GetActorLocation(),
-		OwnerBrawler->GetActorLocation() + ThrowDirection * 1000.f,
-		FColor::Green,
-		false,
-		2.f,
-		0,
-		8.f
-	);
+	//DrawDebugLine(
+	//	GetWorld(),
+	//	OwnerBrawler->GetActorLocation(),
+	//	OwnerBrawler->GetActorLocation() + ThrowDirection * 1000.f,
+	//	FColor::Green,
+	//	false,
+	//	2.f,
+	//	0,
+	//	8.f
+	//);
 
 	Target->LaunchCharacter(ThrowDirection * ThrowForce, true, true);
 
@@ -621,16 +621,16 @@ void UBrawlerGrabComponent::ThrowHeldThrowable()
 
 	OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);
 
-	DrawDebugLine(
-		GetWorld(),
-		OwnerBrawler->GetActorLocation(),
-		OwnerBrawler->GetActorLocation() + ThrowDirection * 1000.f,
-		FColor::Orange,
-		false,
-		2.f,
-		0,
-		8.f
-	);
+	//DrawDebugLine(
+	//	GetWorld(),
+	//	OwnerBrawler->GetActorLocation(),
+	//	OwnerBrawler->GetActorLocation() + ThrowDirection * 1000.f,
+	//	FColor::Orange,
+	//	false,
+	//		2.f,
+	//		0,
+	//		8.f
+	//);
 }
 
 /*========================================

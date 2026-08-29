@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 public class KaijuPrototypeEditorTarget : TargetRules
 {
-	public KaijuPrototypeEditorTarget(TargetInfo Target) : base(Target)
-	{
-		Type = TargetType.Editor;
-		DefaultBuildSettings = BuildSettingsVersion.V5;
-		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;
+    public KaijuPrototypeEditorTarget(TargetInfo Target) : base(Target)
+    {
+        Type = TargetType.Editor;
         DefaultBuildSettings = BuildSettingsVersion.V7;
-        ExtraModuleNames.AddRange( new string[] { "KaijuPrototype" } );
-	}
+        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_8;
+
+        ExtraModuleNames.Add("KaijuPrototype");
+    }
 }
