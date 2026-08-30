@@ -77,11 +77,7 @@ bool UBrawlerGrabComponent::IsGrabbing() const
 
 bool UBrawlerGrabComponent::CanGrab() const
 {
-	return OwnerBrawler
-		&& OwnerBrawler->IsAlive()
-		&& OwnerBrawler->GetBrawlerState() == EBrawlerState::Idle
-		&& !GrabbedTarget
-		&& !HeldThrowable;
+	return OwnerBrawler && OwnerBrawler->IsAlive() && OwnerBrawler->GetBrawlerState() == EBrawlerState::Idle && !GrabbedTarget && !HeldThrowable;
 }
 
 /*========================================
@@ -102,8 +98,7 @@ void UBrawlerGrabComponent::TryGrab()
 		return;
 	}
 
-	if (UBrawlerTargetingComponent* TargetingComp =
-		OwnerBrawler->GetTargetingComponent())
+	if (UBrawlerTargetingComponent* TargetingComp =	OwnerBrawler->GetTargetingComponent())
 	{
 		TargetingComp->StopTargeting();
 	}
@@ -155,15 +150,7 @@ ABrawlerCharacter* UBrawlerGrabComponent::FindGrabbableTarget() const
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(OwnerBrawler);
 
-	const bool bHit = GetWorld()->SweepMultiByChannel(
-		HitResults,
-		Start,
-		End,
-		FQuat::Identity,
-		ECC_Pawn,
-		FCollisionShape::MakeSphere(GrabRadius),
-		Params
-	);
+	const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeSphere(GrabRadius), Params);
 
 	//DrawDebugSphere(GetWorld(), End, GrabRadius, 16, FColor::Blue, false, 1.f);
 	//DrawDebugLine(GetWorld(), Start, End, FColor::Blue, false, 1.f, 0, 3.f);
@@ -207,9 +194,7 @@ void UBrawlerGrabComponent::AttachTarget(ABrawlerCharacter* Target)
 	Target->SetBrawlerState(EBrawlerState::Grabbed);
 
 	Target->GetCharacterMovement()->DisableMovement();
-	Target->GetCapsuleComponent()->SetCollisionEnabled(
-		ECollisionEnabled::NoCollision
-	);
+	Target->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// Prevent the animated grab socket from moving while held.
 	if (Target->IsAlive())
@@ -217,59 +202,32 @@ void UBrawlerGrabComponent::AttachTarget(ABrawlerCharacter* Target)
 		Target->GetMesh()->bPauseAnims = true;
 	}
 
-	UBrawlerThrowableComponent* ThrowableComp =
-		Target->FindComponentByClass<UBrawlerThrowableComponent>();
+	UBrawlerThrowableComponent* ThrowableComp = Target->FindComponentByClass<UBrawlerThrowableComponent>();
 
 	// Attach the target to the socket on the holder's hand.
-	Target->AttachToComponent(
-		OwnerBrawler->GetMesh(),
-		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-		GrabSocketName
-	);
+	Target->AttachToComponent(OwnerBrawler->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GrabSocketName);
 
 	// Find the holder's hand socket and the target's foot/grabbed socket.
-	const FTransform HandSocketTransform =
-		OwnerBrawler->GetMesh()->GetSocketTransform(
-			GrabSocketName,
-			RTS_World
-		);
+	const FTransform HandSocketTransform = OwnerBrawler->GetMesh()->GetSocketTransform(GrabSocketName, RTS_World);
 
-	const FTransform GrabbedSocketTransform =
-		Target->GetMesh()->GetSocketTransform(
-			GrabbedSocketName,
-			RTS_World
-		);
+	const FTransform GrabbedSocketTransform = Target->GetMesh()->GetSocketTransform(GrabbedSocketName, RTS_World);
 
 	// Move the target so its grabbed socket meets the holder's hand.
-	const FVector SocketOffset =
-		Target->GetActorLocation() -
-		GrabbedSocketTransform.GetLocation();
+	const FVector SocketOffset = Target->GetActorLocation() - GrabbedSocketTransform.GetLocation();
 
-	Target->SetActorLocation(
-		HandSocketTransform.GetLocation() + SocketOffset
-	);
+	Target->SetActorLocation(HandSocketTransform.GetLocation() + SocketOffset);
 
 	// Apply per-fighter adjustments after the base socket alignment.
 	if (ThrowableComp && Target->GetRootComponent())
 	{
-		Target->GetRootComponent()->AddRelativeRotation(
-			ThrowableComp->AttachRotationOffset
-		);
+		Target->GetRootComponent()->AddRelativeRotation(ThrowableComp->AttachRotationOffset);
 
-		Target->GetRootComponent()->AddRelativeLocation(
-			ThrowableComp->AttachLocationOffset
-		);
+		Target->GetRootComponent()->AddRelativeLocation(ThrowableComp->AttachLocationOffset);
 	}
 
-	Target->GetCapsuleComponent()->SetCollisionResponseToChannel(
-		ECC_Camera,
-		ECR_Ignore
-	);
+	Target->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
-	Target->GetMesh()->SetCollisionResponseToChannel(
-		ECC_Camera,
-		ECR_Ignore
-	);
+	Target->GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 }
 
 ABrawlerCharacter* UBrawlerGrabComponent::DetachGrabbedTarget()
@@ -307,8 +265,7 @@ void UBrawlerGrabComponent::ThrowGrabbedTarget()
 
 	const FVector ThrowDirection = GetThrowDirection();
 
-	UBrawlerThrowableComponent* ThrowableComp =
-		Target->FindComponentByClass<UBrawlerThrowableComponent>();
+	UBrawlerThrowableComponent* ThrowableComp =	Target->FindComponentByClass<UBrawlerThrowableComponent>();
 
 	if (ThrowableComp)
 	{
@@ -321,33 +278,20 @@ void UBrawlerGrabComponent::ThrowGrabbedTarget()
 
 	if (bTargetWasAlive)
 	{
-		const FRotator UprightRotation(
-			0.f,
-			ThrowDirection.Rotation().Yaw,
-			0.f
-		);
+		const FRotator UprightRotation(0.f, ThrowDirection.Rotation().Yaw, 0.f);
 
-		Target->SetActorRotation(
-			UprightRotation,
-			ETeleportType::TeleportPhysics
-		);
+		Target->SetActorRotation(UprightRotation, ETeleportType::TeleportPhysics);
 	}
 
 	OwnerBrawler->MoveIgnoreActorAdd(Target);
 	Target->MoveIgnoreActorAdd(OwnerBrawler);
 
-	Target->SetActorLocation(
-		OwnerBrawler->GetActorLocation()
-		+ ThrowDirection * 250.f
-		+ FVector(0.f, 0.f, 50.f)
+	Target->SetActorLocation(OwnerBrawler->GetActorLocation() + ThrowDirection * 250.f + FVector(0.f, 0.f, 50.f)
 	);
 
-	Target->GetCapsuleComponent()->SetCollisionEnabled(
-		ECollisionEnabled::QueryAndPhysics
-	);
+	Target->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-	UCharacterMovementComponent* TargetMovement =
-		Target->GetCharacterMovement();
+	UCharacterMovementComponent* TargetMovement = Target->GetCharacterMovement();
 
 	if (TargetMovement)
 	{
@@ -387,9 +331,7 @@ void UBrawlerGrabComponent::ThrowGrabbedTarget()
 
 	FTimerHandle IgnoreRestoreTimer;
 
-	GetWorld()->GetTimerManager().SetTimer(
-		IgnoreRestoreTimer,
-		[this, Target]()
+	GetWorld()->GetTimerManager().SetTimer(IgnoreRestoreTimer, [this, Target]()
 		{
 			if (!OwnerBrawler || !Target)
 			{
@@ -469,15 +411,7 @@ AActor* UBrawlerGrabComponent::FindThrowableTarget() const
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(OwnerBrawler);
 
-	const bool bHit = GetWorld()->SweepMultiByChannel(
-		HitResults,
-		Start,
-		End,
-		FQuat::Identity,
-		ECC_WorldDynamic,
-		FCollisionShape::MakeSphere(GrabRadius),
-		Params
-	);
+	const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, ECC_WorldDynamic, FCollisionShape::MakeSphere(GrabRadius), Params);
 
 	//DrawDebugSphere(GetWorld(), End, GrabRadius, 16, FColor::Orange, false, 0.02f);
 	//DrawDebugLine(GetWorld(), Start, End, FColor::Orange, false, 0.02f, 0, 3.f);
@@ -496,12 +430,11 @@ AActor* UBrawlerGrabComponent::FindThrowableTarget() const
 			continue;
 		}
 
-		UBrawlerThrowableComponent* ThrowableComp =
-			HitActor->FindComponentByClass<UBrawlerThrowableComponent>();
+		UBrawlerThrowableComponent* ThrowableComp =	HitActor->FindComponentByClass<UBrawlerThrowableComponent>();
 
 		if (ThrowableComp && ThrowableComp->bCanBePickedUp)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Found Throwable: %s"), *HitActor->GetName());
+			//UE_LOG(LogTemp, Warning, TEXT("Found Throwable: %s"), *HitActor->GetName());
 			return HitActor;
 		}
 	}
@@ -520,8 +453,7 @@ void UBrawlerGrabComponent::AttachThrowable(AActor* Throwable)
 
 	OwnerBrawler->SetBrawlerState(EBrawlerState::Grabbing);
 
-	UPrimitiveComponent* RootPrimitive =
-		Cast<UPrimitiveComponent>(Throwable->GetRootComponent());
+	UPrimitiveComponent* RootPrimitive = Cast<UPrimitiveComponent>(Throwable->GetRootComponent());
 
 	if (RootPrimitive)
 	{
@@ -529,29 +461,17 @@ void UBrawlerGrabComponent::AttachThrowable(AActor* Throwable)
 		RootPrimitive->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 
-	UBrawlerThrowableComponent* ThrowableComp =
-		Throwable->FindComponentByClass<UBrawlerThrowableComponent>();
+	UBrawlerThrowableComponent* ThrowableComp =	Throwable->FindComponentByClass<UBrawlerThrowableComponent>();
 
-	const FName Socket =
-		ThrowableComp
-		? ThrowableComp->AttachSocket
-		: ThrowableSocketName;
+	const FName Socket = ThrowableComp ? ThrowableComp->AttachSocket : ThrowableSocketName;
 
-	Throwable->AttachToComponent(
-		OwnerBrawler->GetMesh(),
-		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-		Socket
-	);
+	Throwable->AttachToComponent(OwnerBrawler->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
 
 	if (ThrowableComp)
 	{
-		Throwable->SetActorRelativeLocation(
-			ThrowableComp->AttachLocationOffset
-		);
+		Throwable->SetActorRelativeLocation(ThrowableComp->AttachLocationOffset);
 
-		Throwable->SetActorRelativeRotation(
-			ThrowableComp->AttachRotationOffset
-		);
+		Throwable->SetActorRelativeRotation(ThrowableComp->AttachRotationOffset);
 	}
 }
 
@@ -568,55 +488,37 @@ void UBrawlerGrabComponent::ThrowHeldThrowable()
 
 	HeldThrowable = nullptr;
 
-	UBrawlerThrowableComponent* ThrowableComponent =
-		Throwable->FindComponentByClass<UBrawlerThrowableComponent>();
+	UBrawlerThrowableComponent* ThrowableComponent = Throwable->FindComponentByClass<UBrawlerThrowableComponent>();
 
 	if (ThrowableComponent)
 	{
 		ThrowableComponent->BeginThrow(OwnerBrawler);
 	}
-	Throwable->DetachFromActor(
-		FDetachmentTransformRules::KeepWorldTransform
-	);
+	Throwable->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
-	UPrimitiveComponent* RootPrimitive =
-		Cast<UPrimitiveComponent>(Throwable->GetRootComponent());
-
+	UPrimitiveComponent* RootPrimitive = Cast<UPrimitiveComponent>(Throwable->GetRootComponent());
 	if (RootPrimitive)
 	{
-		if (ThrowableComponent &&
-			ThrowableComponent->bOrientToThrowDirection)
+		if (ThrowableComponent && ThrowableComponent->bOrientToThrowDirection)
 		{
-			const FRotator ThrowRotation =
-				ThrowDirection.Rotation() +
-				ThrowableComponent->ThrowRotationOffset;
+			const FRotator ThrowRotation = ThrowDirection.Rotation() + ThrowableComponent->ThrowRotationOffset;
 
 			Throwable->SetActorRotation(ThrowRotation);
 		}
 
-		RootPrimitive->SetCollisionEnabled(
-			ECollisionEnabled::QueryAndPhysics
-		);
+		RootPrimitive->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		RootPrimitive->SetSimulatePhysics(true);
 		RootPrimitive->SetEnableGravity(true);
 
-		if (ThrowableComponent &&
-			ThrowableComponent->bOrientToThrowDirection)
+		if (ThrowableComponent && ThrowableComponent->bOrientToThrowDirection)
 		{
-			RootPrimitive->SetPhysicsAngularVelocityInDegrees(
-				FVector::ZeroVector
-			);
+			RootPrimitive->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 		}
 
-		const float ThrowSpeed =
-			ThrowableComponent
-			? ThrowableComponent->ThrowSpeed
-			: ThrowForce;
+		const float ThrowSpeed = ThrowableComponent ? ThrowableComponent->ThrowSpeed: ThrowForce;
 
-		RootPrimitive->SetPhysicsLinearVelocity(
-			ThrowDirection * ThrowSpeed
-		);
+		RootPrimitive->SetPhysicsLinearVelocity(ThrowDirection * ThrowSpeed);
 	}
 
 	OwnerBrawler->SetBrawlerState(EBrawlerState::Idle);

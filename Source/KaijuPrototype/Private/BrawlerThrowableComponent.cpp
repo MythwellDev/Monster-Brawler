@@ -19,10 +19,7 @@ void UBrawlerThrowableComponent::BeginPlay()
 	{
 		ThrowablePrimitive->SetNotifyRigidBodyCollision(true);
 
-		ThrowablePrimitive->OnComponentHit.AddUniqueDynamic(
-			this,
-			&UBrawlerThrowableComponent::HandleThrowableHit
-		);
+		ThrowablePrimitive->OnComponentHit.AddUniqueDynamic(this, &UBrawlerThrowableComponent::HandleThrowableHit);
 	}
 }
 
