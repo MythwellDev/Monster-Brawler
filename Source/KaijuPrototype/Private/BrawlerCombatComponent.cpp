@@ -3,6 +3,7 @@
 #include "Animation/AnimInstance.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 UBrawlerCombatComponent::UBrawlerCombatComponent()
 {
@@ -198,15 +199,7 @@ void UBrawlerCombatComponent::PerformHitTrace()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(OwnerBrawler);
 
-	const bool bHit = GetWorld()->SweepMultiByChannel(
-		HitResults,
-		Start,
-		End,
-		FQuat::Identity,
-		ECC_Pawn,
-		FCollisionShape::MakeSphere(CurrentAttack.TraceRadius),
-		Params
-	);
+	const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeSphere(CurrentAttack.TraceRadius), Params);
 
 	//DrawDebugSphere(GetWorld(), End, CurrentAttack.TraceRadius, 16, FColor::Red, false, 1.f);
 	//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.f, 0, 3.f);
@@ -231,12 +224,12 @@ void UBrawlerCombatComponent::PerformHitTrace()
 		{
 			HitActors.Add(HitActor);
 
-			HitBrawler->ReceiveDamage(
-				CurrentAttack.Damage,
-				OwnerBrawler,
-				CurrentAttack.Knockback,
-				CurrentAttack.HitReactionType
-			);
+			HitBrawler->ReceiveDamage(CurrentAttack.Damage,	OwnerBrawler, CurrentAttack.Knockback, CurrentAttack.HitReactionType);
+
+			if (CurrentAttack.ImpactFeedback.ImpactSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), CurrentAttack.ImpactFeedback.ImpactSound, HitBrawler->GetActorLocation());
+			}
 
 			PlayAttackCameraShake();
 			PlayHitStop(CurrentAttack.ImpactFeedback.HitStopDuration);

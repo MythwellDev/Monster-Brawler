@@ -9,6 +9,7 @@
 
 class ABrawlerCharacter;
 class UPrimitiveComponent;
+class USoundBase;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class KAIJUPROTOTYPE_API UBrawlerThrowableComponent : public UActorComponent
@@ -63,6 +64,9 @@ public:
 	// Corrects for meshes whose point does not face the actor's local X axis.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Throwable|Flight")
 	FRotator ThrowRotationOffset = FRotator::ZeroRotator;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Throwable|Impact")
+	TObjectPtr<USoundBase> ImpactSound = nullptr;
 
 	void BeginThrow(ABrawlerCharacter* InThrower);
 

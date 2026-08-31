@@ -1,5 +1,6 @@
 #include "BrawlerThrowableComponent.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "BrawlerCharacter.h"
 #include "Components/PrimitiveComponent.h"
 
@@ -51,14 +52,19 @@ void UBrawlerThrowableComponent::HandleThrowableHit(UPrimitiveComponent* HitComp
     if (HitBrawler && HitBrawler->IsAlive())
     {
         bHasDealtImpactDamage = true;
+
         HitBrawler->ReceiveDamage(ImpactDamage, Thrower, ImpactKnockback, ImpactReactionType);
+
+        if (ImpactSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, Hit.ImpactPoint);
+        }
+
         FinishThrow();
         return;
     }
 
-    const float CurrentSpeed = ThrowablePrimitive
-        ? ThrowablePrimitive->GetPhysicsLinearVelocity().Size()
-        : 0.f;
+    const float CurrentSpeed = ThrowablePrimitive ? ThrowablePrimitive->GetPhysicsLinearVelocity().Size() : 0.f;
 
     if (CurrentSpeed < MinimumDamagingSpeed)
     {

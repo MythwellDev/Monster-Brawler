@@ -204,24 +204,21 @@ void UBrawlerGrabComponent::AttachTarget(ABrawlerCharacter* Target)
 
 	UBrawlerThrowableComponent* ThrowableComp = Target->FindComponentByClass<UBrawlerThrowableComponent>();
 
-	// Attach the target to the socket on the holder's hand.
-	Target->AttachToComponent(OwnerBrawler->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GrabSocketName);
+	Target->AttachToComponent(OwnerBrawler->GetMesh(),	FAttachmentTransformRules::SnapToTargetNotIncludingScale, GrabSocketName);
 
-	// Find the holder's hand socket and the target's foot/grabbed socket.
-	const FTransform HandSocketTransform = OwnerBrawler->GetMesh()->GetSocketTransform(GrabSocketName, RTS_World);
-
-	const FTransform GrabbedSocketTransform = Target->GetMesh()->GetSocketTransform(GrabbedSocketName, RTS_World);
-
-	// Move the target so its grabbed socket meets the holder's hand.
-	const FVector SocketOffset = Target->GetActorLocation() - GrabbedSocketTransform.GetLocation();
-
-	Target->SetActorLocation(HandSocketTransform.GetLocation() + SocketOffset);
-
-	// Apply per-fighter adjustments after the base socket alignment.
 	if (ThrowableComp && Target->GetRootComponent())
 	{
 		Target->GetRootComponent()->AddRelativeRotation(ThrowableComp->AttachRotationOffset);
+	}
 
+	const FVector HandSocketLocation = OwnerBrawler->GetMesh()->GetSocketLocation(GrabSocketName);
+
+	const FVector GrabbedSocketLocation = Target->GetMesh()->GetSocketLocation(GrabbedSocketName);
+
+	Target->AddActorWorldOffset(HandSocketLocation - GrabbedSocketLocation,	false,	nullptr, ETeleportType::TeleportPhysics);
+
+	if (ThrowableComp && Target->GetRootComponent())
+	{
 		Target->GetRootComponent()->AddRelativeLocation(ThrowableComp->AttachLocationOffset);
 	}
 

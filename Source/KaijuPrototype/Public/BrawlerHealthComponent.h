@@ -24,7 +24,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Health")
 	float MaxHealth = 100.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Health")
 	float CurrentHealth = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Death")
