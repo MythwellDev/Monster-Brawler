@@ -59,11 +59,9 @@ void ABrawlerCharacter::FinishDeathAnimation()
 
 	if (USkeletalMeshComponent* CharacterMesh = GetMesh())
 	{
-		if (UAnimInstance* AnimInstance =
-			CharacterMesh->GetAnimInstance())
+		if (UAnimInstance* AnimInstance = CharacterMesh->GetAnimInstance())
 		{
-			if (UAnimMontage* ActiveMontage =
-				AnimInstance->GetCurrentActiveMontage())
+			if (UAnimMontage* ActiveMontage = AnimInstance->GetCurrentActiveMontage())
 			{
 				AnimInstance->Montage_Pause(ActiveMontage);
 			}
@@ -171,11 +169,7 @@ void ABrawlerCharacter::BeginThrownState()
 {
 	bRecoverFromThrowOnLanding = IsAlive();
 
-	SetBrawlerState(
-		bRecoverFromThrowOnLanding
-		? EBrawlerState::Stunned
-		: EBrawlerState::Dead
-	);
+	SetBrawlerState(bRecoverFromThrowOnLanding ? EBrawlerState::Stunned : EBrawlerState::Dead);
 }
 
 /*=====================================
