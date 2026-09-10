@@ -2,13 +2,77 @@
 
 
 #include "ColossusGameMode.h"
-
-
+#include "ColossusFighterStart.h"
+#include "EngineUtils.h"
+#include "Engine/World.h"
 
 
 AColossusGameMode::AColossusGameMode()
 {
 	GameStateClass = AColossusGameState::StaticClass();
+}
+
+AActor* AColossusGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{
+	if (!Player) return nullptr;
+	AColossusFighterStart* FighterStart = FindFighterStart(0, FName(TEXT("Default")));
+	
+	if (FighterStart)
+	{
+		return FighterStart;
+	}
+
+	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+AColossusFighterStart* AColossusGameMode::FindFighterStart(int32 SpawnIndex, FName SpawnGroup) const
+{
+	if (!GetWorld()) return nullptr;
+
+	for (TActorIterator<AColossusFighterStart> It(GetWorld()); It; ++It)
+	{
+		AColossusFighterStart* FighterStart = *It;
+		if (FighterStart && FighterStart->bEnabled && FighterStart->SpawnIndex == SpawnIndex && FighterStart->SpawnGroup == SpawnGroup)
+		{
+			return FighterStart;
+		}
+	}
+
+	return nullptr;
+}
+
+ABrawlerCharacter* AColossusGameMode::SpawnCPUFighterAtIndex(TSubclassOf<ABrawlerCharacter> FighterClass, int32 SpawnIndex, FName SpawnGroup)
+{
+	if (!FighterClass || !GetWorld())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnCPUFighterAtIndex: Invalid FighterClass or World"));
+		return nullptr;
+	}
+
+	AColossusFighterStart* FighterStart = FindFighterStart(SpawnIndex, SpawnGroup);
+	
+	if (!FighterStart)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnCPUFighterAtIndex: Invalid FighterStart"));
+		return nullptr;
+	}
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = this;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	ABrawlerCharacter* SpawnedFighter = GetWorld()->SpawnActor<ABrawlerCharacter>(FighterClass, FighterStart->GetActorTransform(), SpawnParameters);
+
+	if (!SpawnedFighter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SpawnCPUFighterAtIndex: Failed to spawn fighter"));
+		return nullptr;
+	}
+
+	if (!SpawnedFighter->GetController())
+	{
+		SpawnedFighter->SpawnDefaultController();
+	}
+
+	return SpawnedFighter;
 }
 
 void AColossusGameMode::BeginNextRound()
