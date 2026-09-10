@@ -54,7 +54,10 @@ void UBrawlerHealthComponent::ReceiveDamage(float DamageAmount, ABrawlerCharacte
         }
     }
 
+	const float PreviousHealth = CurrentHealth;
     CurrentHealth = FMath::Clamp(CurrentHealth - FinalDamage, 0.f, MaxHealth);
+    
+    OnHealthChanged.Broadcast(OwnerBrawler, PreviousHealth, CurrentHealth, MaxHealth);
 
     UE_LOG(LogTemp, Warning, TEXT("%s took %f damage from %s. Health: %f"),
         *OwnerBrawler->GetName(),
@@ -65,6 +68,8 @@ void UBrawlerHealthComponent::ReceiveDamage(float DamageAmount, ABrawlerCharacte
     if (CurrentHealth <= 0.f)
     {
         UE_LOG(LogTemp, Warning, TEXT("%s DIED"), *OwnerBrawler->GetName());
+
+		OnBrawlerDied.Broadcast(OwnerBrawler, Attacker);
 
         OwnerBrawler->SetHyperArmor(false);
         OwnerBrawler->SetBrawlerState(EBrawlerState::Dead);

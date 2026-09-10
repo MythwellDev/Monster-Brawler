@@ -7,6 +7,9 @@
 
 class ABrawlerCharacter;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FBrawlerHealthChangedSignature, ABrawlerCharacter*, Brawler, float, PreviousHealth, float, CurrentHealth, float, MaxHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrawlerDiedSignature, ABrawlerCharacter*, Victim, ABrawlerCharacter*, Killer);
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class KAIJUPROTOTYPE_API UBrawlerHealthComponent : public UActorComponent
 {
@@ -31,6 +34,12 @@ protected:
 	TObjectPtr<UAnimMontage> Montage = nullptr;
 
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Health|Events")
+	FBrawlerHealthChangedSignature OnHealthChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Health|Events")
+	FBrawlerDiedSignature OnBrawlerDied;
+
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void ReceiveDamage(float DamageAmount, ABrawlerCharacter* Attacker, float KnockbackAmount, EHitReactionType HitReactionType);
 
