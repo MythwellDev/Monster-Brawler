@@ -28,7 +28,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Colossus|Match")
 	void SetRoundState(int32 NewRound, int32 NewTotalRounds, EColossusRoundPhase NewRoundPhase);
 
 	UFUNCTION(BlueprintPure, Category = "Colossus|Match")
