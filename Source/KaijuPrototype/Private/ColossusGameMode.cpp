@@ -134,3 +134,31 @@ AColossusGameState* AColossusGameMode::GetColossusGameState() const
 {
 	return Cast<AColossusGameState>(GameState);
 }
+
+bool AColossusGameMode::GetCurrentRoundDefinition(FColossusRoundDefinition& OutRoundDefinition) const
+{
+	const AColossusGameState* ColossusGameState = GetColossusGameState();
+
+	if (!ColossusGameState)
+	{
+		return false;
+	}
+	
+	const int32 DefinitionIndex = ColossusGameState->GetCurrentRound() - 1;
+
+	if (!RoundDefinitions.IsValidIndex(DefinitionIndex))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetCurrentRoundDefinition: Invalid round index %d"), ColossusGameState->GetCurrentRound());
+		return false;
+	}
+
+	OutRoundDefinition = RoundDefinitions[DefinitionIndex];
+
+	if (!OutRoundDefinition.FighterClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GetCurrentRoundDefinition: Invalid FighterClass in round definition %d"), ColossusGameState->GetCurrentRound());
+		return false;
+	}
+
+	return true;
+}
